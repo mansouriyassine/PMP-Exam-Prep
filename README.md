@@ -38,22 +38,6 @@ You can restart the quiz or go back to the main page to select a different quest
 
 ## Project Structure
 
-PMP-Exam-Prep/
-├── index.html
-├── quiz.html
-├── results.html
-├── assets/
-│   ├── css/
-│   │   └── quiz.css
-│   └── js/
-│       └── quiz.js
-└── questions/
-    ├── group1.json
-    ├── group2.json
-    ├── group3.json
-    ├── group4.json
-    └── group5.json
-
 index.html: The main page with links to different question groups
 quiz.html: The page where the quiz is displayed and taken
 results.html: Displays the quiz results
