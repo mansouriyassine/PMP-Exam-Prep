@@ -16,16 +16,18 @@ Clone the repository:
 Copygit clone https://github.com/mansouriyassine/PMP-Exam-Prep.git
 
 Navigate to the project directory:
-Copycd PMP-Exam-Prep
+cd PMP-Exam-Prep
 
 No additional installation is required as this is a client-side application.
 
 ## Usage
 
 Start a local server in the project directory. You can use Python's built-in HTTP server:
+
 python -m http.server 8000
 
 or if you're using Python 3:
+
 python3 -m http.server 8000
 
 Open a web browser and go to:
@@ -38,12 +40,12 @@ You can restart the quiz or go back to the main page to select a different quest
 
 ## Project Structure
 
-index.html: The main page with links to different question groups
-quiz.html: The page where the quiz is displayed and taken
-results.html: Displays the quiz results
-assets/css/quiz.css: Styling for the quiz
-assets/js/quiz.js: JavaScript file handling quiz logic
-questions/: Directory containing JSON files with quiz questions for each group
+- index.html: The main page with links to different question groups
+- quiz.html: The page where the quiz is displayed and taken
+- results.html: Displays the quiz results
+- assets/css/quiz.css: Styling for the quiz
+- assets/js/quiz.js: JavaScript file handling quiz logic
+- questions/: Directory containing JSON files with quiz questions for each group
 
 ## Contributing
 Contributions to improve the quiz or add more questions are welcome. Please follow these steps:
