@@ -15,3 +15,8 @@ button {
     display: block;
     margin: 10px 0;
 }
+
+.selected-choice {
+    background-color: #E5E7EB !important;
+    color: black !important;
+}

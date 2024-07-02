@@ -49,7 +49,7 @@ function showQuestion(question) {
         button.textContent = choice;
         button.onclick = () => selectAnswer(index);
         if (userAnswers[currentQuestionIndex] === index + 1) {
-            button.classList.add('bg-green-300');
+            button.classList.add('bg-gray-300');
         }
         choicesContainer.appendChild(button);
     });
@@ -61,76 +61,14 @@ function selectAnswer(selectedIndex) {
     const choicesContainer = document.getElementById('choices');
     const choiceButtons = choicesContainer.getElementsByTagName('button');
     Array.from(choiceButtons).forEach(button => {
-        button.classList.remove('bg-green-300');
+        button.classList.remove('bg-gray-300');
     });
 
-    choiceButtons[selectedIndex].classList.add('bg-green-300');
+    choiceButtons[selectedIndex].classList.add('bg-gray-300');
 
     userAnswers[currentQuestionIndex] = selectedIndex + 1;
     updateNavigationButtons();
 }
 
 function updateNavigationButtons() {
-    document.getElementById('prev-btn').disabled = currentQuestionIndex === 0;
-    const nextBtn = document.getElementById('next-btn');
-    if (currentQuestionIndex === questions.length - 1) {
-        nextBtn.textContent = 'Finish';
-        nextBtn.onclick = finishQuiz;
-    } else {
-        nextBtn.textContent = 'Next';
-        nextBtn.onclick = () => {
-            currentQuestionIndex++;
-            showQuestion(questions[currentQuestionIndex]);
-        };
-    }
-}
-
-function updateProgressBar() {
-    const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-    document.getElementById('progress-bar').style.width = `${progress}%`;
-    document.getElementById('question-progress').textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
-}
-
-function startTimer() {
-    const timerElement = document.getElementById('timer');
-    timerInterval = setInterval(() => {
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            finishQuiz();
-        } else {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            timeLeft--;
-        }
-    }, 1000);
-}
-
-function finishQuiz() {
-    clearInterval(timerInterval);
-    const score = calculateScore();
-    const timeTaken = 600 - timeLeft;
-    window.location.href = `results.html?score=${score}&total=${questions.length}&time=${timeTaken}&answers=${JSON.stringify(userAnswers)}`;
-}
-
-function calculateScore() {
-    return userAnswers.reduce((score, answer, index) => {
-        return score + (answer === questions[index].answer ? 1 : 0);
-    }, 0);
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const selectedGroup = getUrlParameter('group');
-    if (selectedGroup) {
-        fetchQuestions(selectedGroup);
-    } else {
-        document.getElementById('quiz-container').innerHTML = `<p>No group selected. Please go back and choose a group.</p>`;
-    }
-});
-
-document.getElementById('prev-btn').onclick = () => {
-    if (currentQuestionIndex > 0) {
-        currentQuestionIndex--;
-        showQuestion(questions[currentQuestionIndex]);
-    }
-};
+    document.getElementById('prev
