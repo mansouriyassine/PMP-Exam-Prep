@@ -21,6 +21,11 @@ function displayResults() {
     fetchQuestions(group).then(questions => {
         const questionReview = document.getElementById('question-review');
         questionReview.innerHTML = ''; // Clear previous content
+        if (questions.length === 0) {
+            questionReview.innerHTML = '<p>No questions available to display.</p>';
+            return;
+        }
+
         questions.forEach((question, index) => {
             const userAnswer = userAnswers[index];
             const isCorrect = userAnswer === question.answer;
@@ -45,12 +50,10 @@ function displayResults() {
 }
 
 function fetchQuestions(group) {
-    // First, try to get questions from sessionStorage
     const storedQuestions = sessionStorage.getItem('quizQuestions');
     if (storedQuestions) {
         return Promise.resolve(JSON.parse(storedQuestions));
     } else {
-        // If not in sessionStorage, fetch from the server
         return fetch(`questions/group${group}.json`)
             .then(response => {
                 if (!response.ok) {
@@ -59,7 +62,6 @@ function fetchQuestions(group) {
                 return response.json();
             })
             .then(data => {
-                // Store the fetched questions in sessionStorage for future use
                 sessionStorage.setItem('quizQuestions', JSON.stringify(data));
                 return data;
             })
@@ -73,13 +75,11 @@ function fetchQuestions(group) {
 
 function retakeQuiz() {
     const group = getUrlParameter('group') || '1';
-    // Clear the stored questions before retaking the quiz
     sessionStorage.removeItem('quizQuestions');
     window.location.href = `quiz.html?group=${group}`;
 }
 
 function chooseAnotherGroup() {
-    // Clear the stored questions before choosing another group
     sessionStorage.removeItem('quizQuestions');
     window.location.href = 'index.html';
 }
