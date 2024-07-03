@@ -20,6 +20,7 @@ function displayResults() {
 
     fetchQuestions(group).then(questions => {
         const questionReview = document.getElementById('question-review');
+        questionReview.innerHTML = ''; // Clear previous content
         questions.forEach((question, index) => {
             const userAnswer = userAnswers[index];
             const isCorrect = userAnswer === question.answer;
@@ -30,9 +31,12 @@ function displayResults() {
                         ${['choice1', 'choice2', 'choice3', 'choice4'].map((choice, i) => `
                             <li class="${i + 1 === question.answer ? 'text-green-700 font-bold' : ''} ${i + 1 === userAnswer && !isCorrect ? 'text-red-700 line-through' : ''}">
                                 ${question[choice]}
+                                ${i + 1 === question.answer ? ' (Correct Answer)' : ''}
+                                ${i + 1 === userAnswer && !isCorrect ? ' (Your Answer)' : ''}
                             </li>
                         `).join('')}
                     </ul>
+                    ${!isCorrect ? `<p class="mt-2 text-red-700">Your answer was incorrect. The correct answer is: ${question['choice' + question.answer]}</p>` : ''}
                 </div>
             `;
             questionReview.innerHTML += reviewHtml;
@@ -42,9 +46,15 @@ function displayResults() {
 
 function fetchQuestions(group) {
     return fetch(`questions/group${group}.json`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .catch(error => {
             console.error('Error fetching questions:', error);
+            document.getElementById('question-review').innerHTML = `<p>Error loading questions: ${error.message}. Please try again.</p>`;
             return [];
         });
 }
