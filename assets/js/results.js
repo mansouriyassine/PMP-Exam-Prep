@@ -1,3 +1,5 @@
+console.log('results.js loaded');
+
 function getUrlParameter(name) {
     name = name.replace(/[[]/, '\\[').replace(/[\]]/, '\\]');
     let regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -6,11 +8,18 @@ function getUrlParameter(name) {
 }
 
 function displayResults() {
+    console.log('displayResults function called');
     const score = parseInt(getUrlParameter('score'));
     const total = parseInt(getUrlParameter('total'));
     const timeTaken = parseInt(getUrlParameter('time'));
     const userAnswers = JSON.parse(getUrlParameter('answers'));
     const group = getUrlParameter('group');
+
+    console.log('Score:', score);
+    console.log('Total:', total);
+    console.log('Time Taken:', timeTaken);
+    console.log('User Answers:', userAnswers);
+    console.log('Group:', group);
 
     const resultsSummary = document.getElementById('results-summary');
     resultsSummary.innerHTML = `
@@ -19,37 +28,48 @@ function displayResults() {
     `;
 
     fetchQuestions(group).then(questions => {
+        console.log('Fetched Questions:', questions);
         const questionReview = document.getElementById('question-review');
         questionReview.innerHTML = ''; // Clear previous content
-        questions.forEach((question, index) => {
-            const userAnswer = userAnswers[index];
-            const isCorrect = userAnswer === question.answer;
-            const reviewHtml = `
-                <div class="mb-6 p-4 border rounded ${isCorrect ? 'bg-green-100' : 'bg-red-100'}">
-                    <p class="font-bold mb-2">${index + 1}. ${question.question}</p>
-                    <ul class="list-disc pl-5">
-                        ${['choice1', 'choice2', 'choice3', 'choice4'].map((choice, i) => `
-                            <li class="${i + 1 === question.answer ? 'text-green-700 font-bold' : ''} ${i + 1 === userAnswer && !isCorrect ? 'text-red-700 line-through' : ''}">
-                                ${question[choice]}
-                                ${i + 1 === question.answer ? ' (Correct Answer)' : ''}
-                                ${i + 1 === userAnswer && !isCorrect ? ' (Your Answer)' : ''}
-                            </li>
-                        `).join('')}
-                    </ul>
-                    ${!isCorrect ? `<p class="mt-2 text-red-700">Your answer was incorrect. The correct answer is: ${question['choice' + question.answer]}</p>` : ''}
-                </div>
-            `;
-            questionReview.innerHTML += reviewHtml;
-        });
+        if (questions && questions.length > 0) {
+            questions.forEach((question, index) => {
+                const userAnswer = userAnswers[index];
+                const isCorrect = userAnswer === question.answer;
+                const reviewHtml = `
+                    <div class="mb-6 p-4 border rounded ${isCorrect ? 'bg-green-100' : 'bg-red-100'}">
+                        <p class="font-bold mb-2">${index + 1}. ${question.question}</p>
+                        <ul class="list-disc pl-5">
+                            ${['choice1', 'choice2', 'choice3', 'choice4'].map((choice, i) => `
+                                <li class="${i + 1 === question.answer ? 'text-green-700 font-bold' : ''} ${i + 1 === userAnswer && !isCorrect ? 'text-red-700 line-through' : ''}">
+                                    ${question[choice]}
+                                    ${i + 1 === question.answer ? ' (Correct Answer)' : ''}
+                                    ${i + 1 === userAnswer && !isCorrect ? ' (Your Answer)' : ''}
+                                </li>
+                            `).join('')}
+                        </ul>
+                        ${!isCorrect ? `<p class="mt-2 text-red-700">Your answer was incorrect. The correct answer is: ${question['choice' + question.answer]}</p>` : ''}
+                    </div>
+                `;
+                questionReview.innerHTML += reviewHtml;
+            });
+        } else {
+            questionReview.innerHTML = '<p>No questions found. Please try again.</p>';
+        }
+    }).catch(error => {
+        console.error('Error in displayResults:', error);
+        document.getElementById('question-review').innerHTML = `<p>Error displaying results: ${error.message}. Please try again.</p>`;
     });
 }
 
 function fetchQuestions(group) {
+    console.log('Fetching questions for group:', group);
     // First, try to get questions from sessionStorage
     const storedQuestions = sessionStorage.getItem('quizQuestions');
     if (storedQuestions) {
+        console.log('Questions found in sessionStorage');
         return Promise.resolve(JSON.parse(storedQuestions));
     } else {
+        console.log('Questions not found in sessionStorage, fetching from server');
         // If not in sessionStorage, fetch from the server
         return fetch(`questions/group${group}.json`)
             .then(response => {
@@ -59,6 +79,7 @@ function fetchQuestions(group) {
                 return response.json();
             })
             .then(data => {
+                console.log('Questions fetched successfully:', data);
                 // Store the fetched questions in sessionStorage for future use
                 sessionStorage.setItem('quizQuestions', JSON.stringify(data));
                 return data;
@@ -85,7 +106,12 @@ function chooseAnotherGroup() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    displayResults();
+    console.log('DOM fully loaded');
+    try {
+        displayResults();
+    } catch (error) {
+        console.error('Error in displayResults:', error);
+    }
     document.getElementById('retake-btn').addEventListener('click', retakeQuiz);
     document.getElementById('choose-group-btn').addEventListener('click', chooseAnotherGroup);
 });
