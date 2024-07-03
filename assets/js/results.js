@@ -10,6 +10,7 @@ function displayResults() {
     const total = parseInt(getUrlParameter('total'));
     const timeTaken = parseInt(getUrlParameter('time'));
     const userAnswers = JSON.parse(getUrlParameter('answers'));
+    const group = getUrlParameter('group');
 
     const resultsSummary = document.getElementById('results-summary');
     resultsSummary.innerHTML = `
@@ -17,7 +18,7 @@ function displayResults() {
         <p class="text-lg mb-4">Time taken: ${Math.floor(timeTaken / 60)}:${(timeTaken % 60).toString().padStart(2, '0')}</p>
     `;
 
-    fetchQuestions().then(questions => {
+    fetchQuestions(group).then(questions => {
         const questionReview = document.getElementById('question-review');
         questions.forEach((question, index) => {
             const userAnswer = userAnswers[index];
@@ -32,9 +33,6 @@ function displayResults() {
                             </li>
                         `).join('')}
                     </ul>
-                    <p class="mt-2 ${isCorrect ? 'text-green-700' : 'text-red-700'}">
-                        ${isCorrect ? 'Correct!' : `Incorrect. The correct answer is: ${question[`choice${question.answer}`]}`}
-                    </p>
                 </div>
             `;
             questionReview.innerHTML += reviewHtml;
@@ -42,18 +40,12 @@ function displayResults() {
     });
 }
 
-function fetchQuestions() {
-    const group = getUrlParameter('group') || '1';
+function fetchQuestions(group) {
     return fetch(`questions/group${group}.json`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .catch(error => {
             console.error('Error fetching questions:', error);
-            document.getElementById('question-review').innerHTML = `<p>Error loading questions: ${error.message}. Please try again.</p>`;
+            return [];
         });
 }
 
@@ -66,4 +58,8 @@ function chooseAnotherGroup() {
     window.location.href = 'index.html';
 }
 
-document.addEventListener('DOMContentLoaded', displayResults);
+document.addEventListener('DOMContentLoaded', () => {
+    displayResults();
+    document.getElementById('retake-btn').addEventListener('click', retakeQuiz);
+    document.getElementById('choose-group-btn').addEventListener('click', chooseAnotherGroup);
+});
