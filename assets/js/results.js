@@ -12,12 +12,6 @@ function displayResults() {
     const userAnswers = JSON.parse(getUrlParameter('answers'));
     const group = getUrlParameter('group');
 
-    console.log('Score:', score);
-    console.log('Total:', total);
-    console.log('Time Taken:', timeTaken);
-    console.log('User Answers:', userAnswers);
-    console.log('Group:', group);
-
     const resultsSummary = document.getElementById('results-summary');
     resultsSummary.innerHTML = `
         <p class="text-xl mb-2">Your score: ${score} out of ${total}</p>
@@ -25,19 +19,11 @@ function displayResults() {
     `;
 
     fetchQuestions(group).then(questions => {
-        console.log('Fetched Questions:', questions);
         const questionReview = document.getElementById('question-review');
         questionReview.innerHTML = ''; // Clear previous content
-        if (questions.length === 0) {
-            questionReview.innerHTML = '<p>No questions found. Please try again.</p>';
-            return;
-        }
         questions.forEach((question, index) => {
             const userAnswer = userAnswers[index];
             const isCorrect = userAnswer === question.answer;
-            console.log(`Question ${index + 1}:`, question);
-            console.log(`User Answer:`, userAnswer);
-            console.log(`Is Correct:`, isCorrect);
             const reviewHtml = `
                 <div class="mb-6 p-4 border rounded ${isCorrect ? 'bg-green-100' : 'bg-red-100'}">
                     <p class="font-bold mb-2">${index + 1}. ${question.question}</p>
@@ -59,36 +45,46 @@ function displayResults() {
 }
 
 function fetchQuestions(group) {
-    console.log('Fetching questions for group:', group);
-    return fetch(`questions/group${group}.json`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Fetched data:', data);
-            return data;
-        })
-        .catch(error => {
-            console.error('Error fetching questions:', error);
-            document.getElementById('question-review').innerHTML = `<p>Error loading questions: ${error.message}. Please try again.</p>`;
-            return [];
-        });
+    // First, try to get questions from sessionStorage
+    const storedQuestions = sessionStorage.getItem('quizQuestions');
+    if (storedQuestions) {
+        return Promise.resolve(JSON.parse(storedQuestions));
+    } else {
+        // If not in sessionStorage, fetch from the server
+        return fetch(`questions/group${group}.json`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Store the fetched questions in sessionStorage for future use
+                sessionStorage.setItem('quizQuestions', JSON.stringify(data));
+                return data;
+            })
+            .catch(error => {
+                console.error('Error fetching questions:', error);
+                document.getElementById('question-review').innerHTML = `<p>Error loading questions: ${error.message}. Please try again.</p>`;
+                return [];
+            });
+    }
 }
 
 function retakeQuiz() {
     const group = getUrlParameter('group') || '1';
+    // Clear the stored questions before retaking the quiz
+    sessionStorage.removeItem('quizQuestions');
     window.location.href = `quiz.html?group=${group}`;
 }
 
 function chooseAnotherGroup() {
+    // Clear the stored questions before choosing another group
+    sessionStorage.removeItem('quizQuestions');
     window.location.href = 'index.html';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM fully loaded and parsed');
     displayResults();
     document.getElementById('retake-btn').addEventListener('click', retakeQuiz);
     document.getElementById('choose-group-btn').addEventListener('click', chooseAnotherGroup);
