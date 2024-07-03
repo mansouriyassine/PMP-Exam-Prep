@@ -1,9 +1,3 @@
-let questions = [];
-let currentQuestionIndex = 0;
-let userAnswers = [];
-let timeLeft = 600; // 10 minutes in seconds
-let timerInterval;
-
 function getUrlParameter(name) {
     name = name.replace(/[[]/, '\\[').replace(/[\]]/, '\\]');
     let regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -11,7 +5,45 @@ function getUrlParameter(name) {
     return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
-function fetchQuestions(group) {
+function displayResults() {
+    const score = parseInt(getUrlParameter('score'));
+    const total = parseInt(getUrlParameter('total'));
+    const timeTaken = parseInt(getUrlParameter('time'));
+    const userAnswers = JSON.parse(getUrlParameter('answers'));
+
+    const resultsSummary = document.getElementById('results-summary');
+    resultsSummary.innerHTML = `
+        <p class="text-xl mb-2">Your score: ${score} out of ${total}</p>
+        <p class="text-lg mb-4">Time taken: ${Math.floor(timeTaken / 60)}:${(timeTaken % 60).toString().padStart(2, '0')}</p>
+    `;
+
+    fetchQuestions().then(questions => {
+        const questionReview = document.getElementById('question-review');
+        questions.forEach((question, index) => {
+            const userAnswer = userAnswers[index];
+            const isCorrect = userAnswer === question.answer;
+            const reviewHtml = `
+                <div class="mb-6 p-4 border rounded ${isCorrect ? 'bg-green-100' : 'bg-red-100'}">
+                    <p class="font-bold mb-2">${index + 1}. ${question.question}</p>
+                    <ul class="list-disc pl-5">
+                        ${['choice1', 'choice2', 'choice3', 'choice4'].map((choice, i) => `
+                            <li class="${i + 1 === question.answer ? 'text-green-700 font-bold' : ''} ${i + 1 === userAnswer && !isCorrect ? 'text-red-700 line-through' : ''}">
+                                ${question[choice]}
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <p class="mt-2 ${isCorrect ? 'text-green-700' : 'text-red-700'}">
+                        ${isCorrect ? 'Correct!' : `Incorrect. The correct answer is: ${question[`choice${question.answer}`]}`}
+                    </p>
+                </div>
+            `;
+            questionReview.innerHTML += reviewHtml;
+        });
+    });
+}
+
+function fetchQuestions() {
+    const group = getUrlParameter('group') || '1';
     return fetch(`questions/group${group}.json`)
         .then(response => {
             if (!response.ok) {
@@ -19,56 +51,19 @@ function fetchQuestions(group) {
             }
             return response.json();
         })
-        .then(data => {
-            if (!Array.isArray(data) || data.length === 0) {
-                throw new Error('Invalid or empty question data');
-            }
-            questions = data;
-            startQuiz();
-        })
         .catch(error => {
             console.error('Error fetching questions:', error);
-            document.getElementById('quiz-container').innerHTML = `<p>Error loading questions: ${error.message}. Please try again.</p>`;
+            document.getElementById('question-review').innerHTML = `<p>Error loading questions: ${error.message}. Please try again.</p>`;
         });
 }
 
-function startQuiz() {
-    userAnswers = new Array(questions.length).fill(null);
-    showQuestion(questions[currentQuestionIndex]);
-    startTimer();
+function retakeQuiz() {
+    const group = getUrlParameter('group') || '1';
+    window.location.href = `quiz.html?group=${group}`;
 }
 
-function showQuestion(question) {
-    document.getElementById('question').textContent = question.question;
-    const choicesContainer = document.getElementById('choices');
-    choicesContainer.innerHTML = '';
-    const choices = [question.choice1, question.choice2, question.choice3, question.choice4];
-    choices.forEach((choice, index) => {
-        const button = document.createElement('button');
-        button.className = 'w-full text-left px-4 py-2 border rounded mb-2 hover:bg-gray-100';
-        button.textContent = choice;
-        button.onclick = () => selectAnswer(index);
-        if (userAnswers[currentQuestionIndex] === index + 1) {
-            button.classList.add('bg-gray-300');
-        }
-        choicesContainer.appendChild(button);
-    });
-    updateNavigationButtons();
-    updateProgressBar();
+function chooseAnotherGroup() {
+    window.location.href = 'index.html';
 }
 
-function selectAnswer(selectedIndex) {
-    const choicesContainer = document.getElementById('choices');
-    const choiceButtons = choicesContainer.getElementsByTagName('button');
-    Array.from(choiceButtons).forEach(button => {
-        button.classList.remove('bg-gray-300');
-    });
-
-    choiceButtons[selectedIndex].classList.add('bg-gray-300');
-
-    userAnswers[currentQuestionIndex] = selectedIndex + 1;
-    updateNavigationButtons();
-}
-
-function updateNavigationButtons() {
-    document.getElementById('prev
+document.addEventListener('DOMContentLoaded', displayResults);
